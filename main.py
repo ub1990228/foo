@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+import codecs
+import random
+from sys import exit
+
 import pygame
 from pygame.locals import *
-from sys import exit
-import random
 
 # 设置游戏屏幕大小
 SCREEN_WIDTH = 480
 SCREEN_HEIGHT = 800
-import codecs
 
 
 # 子弹类
@@ -15,7 +16,9 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, bullet_img, init_pos):
         pygame.sprite.Sprite.__init__(self)
         self.image = bullet_img
+        # 获取self.image大小
         self.rect = self.image.get_rect()
+        # 底中位置开始绘制(x, y)(初始化图片所在的矩形)
         self.rect.midbottom = init_pos
         self.speed = 10
 
@@ -76,7 +79,9 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, enemy_img, enemy_down_imgs, init_pos):
         pygame.sprite.Sprite.__init__(self)
         self.image = enemy_img
+        # 获取self.image大小
         self.rect = self.image.get_rect()
+        # 初始化矩形的左上角坐标
         self.rect.topleft = init_pos
         self.down_imgs = enemy_down_imgs
         self.speed = 2
@@ -119,10 +124,10 @@ pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 # 游戏界面标题
 pygame.display.set_caption('飞机大战')
-# 图标
+# 图标(提高 blit 的速度，但是也想实现透明效果)
 ic_launcher = pygame.image.load('resources/image/ic_launcher.png').convert_alpha()
 pygame.display.set_icon(ic_launcher)
-# 背景图
+# 背景图(convert会显示每一个像素点，png图片不会透明)
 background = pygame.image.load('resources/image/background.png').convert()
 # Game Over 的背景图
 game_over = pygame.image.load('resources/image/gameover.png')
@@ -143,7 +148,7 @@ def startGame():
     player_rect.append(pygame.Rect(432, 624, 102, 126))
     player_pos = [200, 600]
     player = Player(plane_img, player_rect, player_pos)
-    # 子弹图片
+    # 子弹图片（subsurface可以在图片集合中截取图片，前面是位置，后面是大小。位置文件缺少，一般都有）
     bullet_rect = pygame.Rect(69, 77, 10, 21)
     bullet_img = plane_img.subsurface(bullet_rect)
     # 敌机不同状态的图片列表，多张图片展示为动画效果
@@ -174,14 +179,16 @@ def startGame():
         # 绘制背景
         screen.fill(0)
         screen.blit(background, (0, 0))
-        # 控制游戏最大帧率为 60
+        # 控制游戏最大帧率为 60（每秒60）
         clock.tick(60)
         # 生成子弹，需要控制发射频率
         # 首先判断玩家飞机没有被击中
         if not player.is_hit:
+            # 15帧显示子弹图片
             if shoot_frequency % 15 == 0:
                 player.shoot(bullet_img)
             shoot_frequency += 1
+            # 清除计数
             if shoot_frequency >= 15:
                 shoot_frequency = 0
         for bullet in player.bullets:
